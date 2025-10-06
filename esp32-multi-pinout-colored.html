@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1" name="viewport"/>
+<title>ESP32‑WROVER Pin Reference (Color‑coded)</title>
+<style>
+  body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, 'Helvetica Neue', Arial, sans-serif; margin: 24px; }
+  h1 { margin-bottom: 0; }
+  .sub { color: #444; margin-top: 4px; }
+  table { border-collapse: collapse; width: 100%; margin-top: 16px; }
+  th, td { border: 1px solid #e5e7eb; padding: 8px 10px; vertical-align: top; font-size: 14px; }
+  th { background: #f3f4f6; position: sticky; top: 0; z-index: 1;}
+  tr.row-green { background: #f0fff4; }      /* subtle green */
+  tr.row-gray  { background: #f5f5f5; color: #555; }
+  tr.row-red   { background: #fff5f5; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; border: 1px solid transparent; }
+  .badge.green { background: #d1fae5; border-color: #10b981; }
+  .badge.yellow { background: #fef3c7; border-color: #f59e0b; }
+  .badge.red { background: #fee2e2; border-color: #ef4444; }
+  .badge.gray { background: #e5e7eb; border-color: #9ca3af; }
+  .toolbar { display:flex; gap:12px; flex-wrap: wrap; align-items:center; margin-top: 12px; }
+  .search { padding:8px 10px; border:1px solid #d1d5db; border-radius:8px; width: 320px; }
+  .legend span { margin-right:10px; }
+  .footnotes { margin-top: 24px; font-size: 13px; color:#555; }
+  code { background: #f3f4f6; padding: 1px 4px; border-radius: 4px; }
+
+  .filter { cursor: pointer; user-select: none; }
+  .filter.active { outline: 2px solid #111827; box-shadow: 0 0 0 2px #111827 inset; }
+</style>
+<script>
+  let activeFilters = new Set();
+  function applyFilters() {
+    const q = document.getElementById('q').value.toLowerCase();
+    const device = document.getElementById('device').value;
+    const rows = document.querySelectorAll('#pinTable tbody tr');
+    rows.forEach(r => {
+      const textMatch = r.innerText.toLowerCase().includes(q);
+      const statusTokens = (r.getAttribute('data-status') || '').split(/\s+/);
+      const hasAny = [...activeFilters].length === 0 || [...activeFilters].some(f => statusTokens.includes(f));
+      const deviceMatch = (r.getAttribute('data-device') || 'wrover') === device;
+      r.style.display = (textMatch && hasAny && deviceMatch) ? '' : 'none';
+    });
+  }
+  function filterTable() { applyFilters(); }
+  window.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.filter').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.getAttribute('data-filter');
+        if (activeFilters.has(key)) {
+          activeFilters.delete(key);
+          btn.classList.remove('active');
+        } else {
+          activeFilters.add(key);
+          btn.classList.add('active');
+        }
+        applyFilters();
+      });
+    });
+    document.querySelector('.filter-clear').addEventListener('click', () => {
+      activeFilters.clear();
+      document.querySelectorAll('.filter.active').forEach(b => b.classList.remove('active'));
+      applyFilters();
+    });
+    document.getElementById('q').addEventListener('input', applyFilters);
+    document.getElementById('device').addEventListener('change', applyFilters);
+    applyFilters();
+  });
+</script>
+</head>
+<body>
+<h1>ESP32‑WROVER Module — Pin Reference</h1>
+<div class="sub">All rows are softly highlighted in green as requested. Status badges show <span class="badge gray">Power/NC</span>, <span class="badge yellow">Strapping / Input‑only</span>, and <span class="badge red">Flash/PSRAM (do not use)</span>.</div>
+<div class="toolbar">
+<input class="search" id="q" oninput="filterTable()" placeholder="Search (e.g., ADC1, I2C, strapping, GPIO18, input only…)" type="search"/>
+<select id="device" style="padding:8px 10px;border:1px solid #d1d5db;border-radius:8px;">
+<option selected="" value="wrover">ESP32‑WROVER (module)</option>
+<option value="generic">Generic ESP32 (chip)</option>
+</select>
+
+<div class="legend">
+<button class="badge green filter" data-filter="available" type="button">Available</button>
+<button class="badge yellow filter" data-filter="strapping" type="button">Strapping</button>
+<button class="badge yellow filter" data-filter="input-only" type="button">Input‑only</button>
+<button class="badge red filter" data-filter="flash-psram" type="button">Flash/PSRAM</button>
+<button class="badge gray filter" data-filter="power-nc" type="button">Power/NC</button>
+<button class="filter-clear" style="margin-left:8px;padding:4px 10px;border-radius:8px;border:1px solid #d1d5db;background:#fff;" type="button">Clear</button>
+</div>
+</div>
+<table id="pinTable">
+<thead>
+<tr>
+<th>Pad</th>
+<th>Module Pin</th>
+<th>GPIO / Alt Names</th>
+<th>Dir</th>
+<th>Analog / RTC</th>
+<th>Common Peripherals</th>
+<th>Internal Pulls</th>
+<th>Strap</th>
+<th>Status</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-gray" data-status="power-nc">
+<td>1</td>
+<td><code>GND</code></td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td><span class="badge gray">Power/NC</span></td>
+<td>Ground</td>
+</tr>
+<tr class="row-gray" data-status="power-nc">
+<td>2</td>
+<td><code>3V3</code></td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td><span class="badge gray">Power/NC</span></td>
+<td>Power supply 3.3 V</td>
+</tr>
+<tr class="row-gray" data-status="power-nc">
+<td>3</td>
+<td><code>EN</code></td>
+<td>EN</td>
+<td>Input</td>
+<td>—</td>
+<td>Chip enable</td>
+<td>Internal pull-up</td>
+<td>No</td>
+<td><span class="badge gray">Power/NC</span></td>
+<td>Active‑high enable. Keep high for normal operation.</td>
+</tr>
+<tr class="row-green" data-status="input-only">
+<td>4</td>
+<td><code>SENSOR_VP</code></td>
+<td>GPIO36 / ADC1_CH0 / RTC_GPIO0</td>
+<td>Input only</td>
+<td>ADC1_CH0, RTC</td>
+<td>—</td>
+<td>No internal PU/PD</td>
+<td>No</td>
+<td><span class="badge yellow">Input‑only</span></td>
+<td>Good for analog input; not output capable.</td>
+</tr>
+<tr class="row-green" data-status="input-only">
+<td>5</td>
+<td><code>SENSOR_VN</code></td>
+<td>GPIO39 / ADC1_CH3 / RTC_GPIO3</td>
+<td>Input only</td>
+<td>ADC1_CH3, RTC</td>
+<td>—</td>
+<td>No internal PU/PD</td>
+<td>No</td>
+<td><span class="badge yellow">Input‑only</span></td>
+<td>Good for analog input; not output capable.</td>
+</tr>
+<tr class="row-green" data-status="input-only">
+<td>6</td>
+<td><code>IO34</code></td>
+<td>GPIO34 / ADC1_CH6 / RTC_GPIO4</td>
+<td>Input only</td>
+<td>ADC1_CH6, RTC</td>
+<td>—</td>
+<td>No internal PU/PD</td>
+<td>No</td>
+<td><span class="badge yellow">Input‑only</span></td>
+<td>Input only; no PU/PD.</td>
+</tr>
+<tr class="row-green" data-status="input-only">
+<td>7</td>
+<td><code>IO35</code></td>
+<td>GPIO35 / ADC1_CH7 / RTC_GPIO5</td>
+<td>Input only</td>
+<td>ADC1_CH7, RTC</td>
+<td>—</td>
+<td>No internal PU/PD</td>
+<td>No</td>
+<td><span class="badge yellow">Input‑only</span></td>
+<td>Input only; no PU/PD.</td>
+</tr>
+<tr class="row-green" data-status="available">
+<td>8</td>
+<td><code>IO32</code></td>
+<td>GPIO32 / ADC1_CH4 / TOUCH9 / RTC_GPIO9</td>
+<td>I/O</td>
+<td>ADC1_CH4, Touch9, RTC</td>
+<td>XTAL_32K_P</td>
+<td>PU/PD via GPIO matrix</td>
+<td>No</td>
+<td><span class="badge green">Available</span></td>
+<td>Also 32.768 kHz crystal input.</td>
+</tr>
+<tr class="row-green" data-status="available">
+<td>9</td>
+<td><code>IO33</code></td>
+<td>GPIO33 / ADC1_CH5 / TOUCH8 / RTC_GPIO8</td>
+<td>I/O</td>
+<td>ADC1_CH5, Touch8, RTC</td>
+<td>XTAL_32K_N</td>
+<td>PU/PD via GPIO matrix</td>
+<td>No</td>
+<td><span class="badge green">Available</span></td>
+<td>Also 32.768 kHz crystal output.</td>
+</tr>
+<tr class="row-green" data-status="available">
+<td>10</td>
+<td><code>IO25</code></td>
+<td>GPIO25 / DAC1 / ADC2_CH8 / RTC_GPIO6</td>
+<td>I/O</td>
+<td>DAC1, ADC2_CH8, RTC</td>
+<td>EMAC_RXD0</td>
+<td>PU/PD via GPIO matrix</td>
+<td>No</td>
+<td><span class="badge green">Available</span></td>
+<td>ADC2 shared with Wi‑Fi; avoid analog during Wi‑Fi.</td>
+</tr>
+<tr class="row-green" data-status="available">
+<td>11</td>
+<td><code>IO26</code></td>
+<td>GPIO26 / DAC2 / ADC2_CH9 / RTC_GPIO7</td>
+<td>I/O</td>
+<td>DAC2, ADC2_CH9, RTC</td>
+<td>EMAC_RXD1</td>
+<td>PU/PD via GPIO matrix</td>
+<td>No</td>
+<td><span class="badge green">Available</span></td>
+<td>ADC2 shared with Wi‑Fi.</td>
+</tr>
+<tr class="row-green" data-status="available">
+<td>12</td>
+<td><code>IO27</code></td>
+<td>GPIO27 / ADC2_CH7 / TOUCH7 / RTC_GPIO17</td>
+<td>I/O</td>
+<td>ADC2_CH7, Touch7, RTC</td>
+<td>EMAC_RX_DV</td>
+<td>PU/PD via GPIO matrix</td>
+<td>No</td>
+<td><span class="badge green">Available</span></td>
+<td>ADC2 shared with Wi‑Fi.</td>
+</tr>
+<tr class="row-green" data-status="available">
+<td>13</td>
+<td><code>IO14</code></td>
+<td>GPIO14 / ADC2_CH6 / TOUCH6 / MTMS</td>
+<td>I/O</td>
+<td>ADC2_CH6, Touch6</td>
+<td>HSPI CLK, SD_CLK, EMAC_TXD2</td>
+<td>PU/PD via GPIO matrix</td>
+<td>No</td>
+<td><span class="badge green">Available</span></td>
+<td>JTAG MTMS by default; free after boot.</td>
+</tr>
+<tr class="row-green" data-status="available strapping">
+<td>14</td>
+<td><code>IO12</code></td>
+<td>GPIO12 / ADC2_CH5 / TOUCH5 / MTDI</td>
+<td>I/O</td>
+<td>ADC2_CH5, Touch5</td>
+<td>HSPIQ, SD_DATA2</td>
+<td>Internally pulled (strap)</td>
+<td>Yes (VDD_SDIO voltage)</td>
+<td><span class="badge yellow">Strapping</span> <span class="badge green">Available</span></td>
+<td>Strapping; default pull‑down on chip; WROVER forces 1.8 V SDIO. Avoid driving at boot.</td>
+</tr>
+<tr class="row-gray" data-status="power-nc">
+<td>15</td>
+<td><code>GND</code></td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td><span class="badge gray">Power/NC</span></td>
+<td>Ground</td>
+</tr>
+<tr class="row-green" data-status="available">
+<td>16</td>
+<td><code>IO13</code></td>
+<td>GPIO13 / ADC2_CH4 / TOUCH4 / MTCK</td>
+<td>I/O</td>
+<td>ADC2_CH4, Touch4</td>
+<td>HSPID, SD_DATA3</td>
+<td>PU/PD via GPIO matrix</td>
+<td>No</td>
+<td><span class="badge green">Available</span></td>
+<td>JTAG MTCK at boot; free after boot.</td>
+</tr>
+<tr class="row-red" data-status="flash-psram">
+<td>17</td>
+<td><code>SHD/SD2*</code></td>
+<td>GPIO9 / HS1_DATA2</td>
+<td>I/O</td>
+<td>—</td>
+<td>Connected to SPI flash/PSRAM</td>
+<td>—</td>
+<td>No</td>
+<td><span class="badge red">Flash/PSRAM</span></td>
+<td>Used internally by flash/PSRAM; do not use.</td>
+</tr>
+<tr class="row-red" data-status="flash-psram">
+<td>18</td>
+<td><code>SWP/SD3*</code></td>
+<td>GPIO10 / HS1_DATA3</td>
+<td>I/O</td>
+<td>—</td>
+<td>Connected to SPI flash/PSRAM</td>
+<td>—</td>
+<td>No</td>
+<td><span class="badge red">Flash/PSRAM</span></td>
+<td>Used internally by flash/PSRAM; do not use.</td>
+</tr>
+<tr class="row-red" data-status="flash-psram">
+<td>19</td>
+<td><code>SCS/CMD*</code></td>
+<td>GPIO11 / HS1_CMD</td>
+<td>I/O</td>
+<td>—</td>
+<td>Connected to SPI flash/PSRAM</td>
+<td>—</td>
+<td>No</td>
+<td><span class="badge red">Flash/PSRAM</span></td>
+<td>Used internally by flash/PSRAM; do not use.</td>
+</tr>
+<tr class="row-red" data-status="flash-psram">
+<td>20</td>
+<td><code>SCK/CLK*</code></td>
+<td>GPIO6 / HS1_CLK</td>
+<td>I/O</td>
+<td>—</td>
+<td>Connected to SPI flash/PSRAM</td>
+<td>—</td>
+<td>No</td>
+<td><span class="badge red">Flash/PSRAM</span></td>
+<td>Used internally by flash/PSRAM; do not use.</td>
+</tr>
+<tr class="row-red" data-status="flash-psram">
+<td>21</td>
+<td><code>SDO/SD0*</code></td>
+<td>GPIO7 / HS1_DATA0</td>
+<td>I/O</td>
+<td>—</td>
+<td>Connected to SPI flash/PSRAM</td>
+<td>—</td>
+<td>No</td>
+<td><span class="badge red">Flash/PSRAM</span></td>
+<td>Used internally by flash/PSRAM; do not use.</td>
+</tr>
+<tr class="row-red" data-status="flash-psram">
+<td>22</td>
+<td><code>SDI/SD1*</code></td>
+<td>GPIO8 / HS1_DATA1</td>
+<td>I/O</td>
+<td>—</td>
+<td>Connected to SPI flash/PSRAM</td>
+<td>—</td>
+<td>No</td>
+<td><span class="badge red">Flash/PSRAM</span></td>
+<td>Used internally by flash/PSRAM; do not use.</td>
+</tr>
+<tr class="row-green" data-status="available strapping">
+<td>23</td>
+<td><code>IO15</code></td>
+<td>GPIO15 / MTDO</td>
+<td>I/O</td>
+<td>—</td>
+<td>HSPI CS0, U0TXD log control</td>
+<td>Internally pulled‑up (strap)</td>
+<td>Yes (Log/SDIO timing)</td>
+<td><span class="badge yellow">Strapping</span> <span class="badge green">Available</span></td>
+<td>Strapping; avoid conflicting levels during boot.</td>
+</tr>
+<tr class="row-green" data-status="available strapping">
+<td>24</td>
+<td><code>IO2</code></td>
+<td>GPIO2</td>
+<td>I/O</td>
+<td>—</td>
+<td>HSPI/SDIO data</td>
+<td>Internally pulled‑down (strap)</td>
+<td>Yes (boot mode)</td>
+<td><span class="badge yellow">Strapping</span> <span class="badge green">Available</span></td>
+<td>Must be left floating/high for normal SPI boot.</td>
+</tr>
+<tr class="row-green" data-status="available strapping">
+<td>25</td>
+<td><code>IO0</code></td>
+<td>GPIO0</td>
+<td>I/O</td>
+<td>—</td>
+<td>Boot mode select</td>
+<td>Internally pulled‑up (strap)</td>
+<td>Yes (boot mode)</td>
+<td><span class="badge yellow">Strapping</span> <span class="badge green">Available</span></td>
+<td>Low at reset → download boot; high → normal boot.</td>
+</tr>
+<tr class="row-green" data-status="available">
+<td>26</td>
+<td><code>IO4</code></td>
+<td>GPIO4 / TOUCH0</td>
+<td>I/O</td>
+<td>Touch0</td>
+<td>HS2_DATA2, EMAC_TX_ER</td>
+<td>PU/PD via GPIO matrix</td>
+<td>—</td>
+<td><span class="badge green">Available</span></td>
+<td>Usable general‑purpose pin.</td>
+</tr>
+<tr class="row-gray" data-status="power-nc">
+<td>27</td>
+<td><code>NC</code></td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td><span class="badge gray">Power/NC</span></td>
+<td>No connect</td>
+</tr>
+<tr class="row-gray" data-status="power-nc">
+<td>28</td>
+<td><code>NC</code></td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td><span class="badge gray">Power/NC</span></td>
+<td>No connect</td>
+</tr>
+<tr class="row-green" data-status="available strapping">
+<td>29</td>
+<td><code>IO5</code></td>
+<td>GPIO5</td>
+<td>I/O</td>
+<td>—</td>
+<td>VSPI CS0, EMAC_RX_CLK</td>
+<td>Internally pulled‑up (strap)</td>
+<td>Yes (SDIO timing)</td>
+<td><span class="badge yellow">Strapping</span> <span class="badge green">Available</span></td>
+<td>Strapping; don’t pull low unintentionally at boot.</td>
+</tr>
+<tr class="row-green" data-status="available">
+<td>30</td>
+<td><code>IO18</code></td>
+<td>GPIO18</td>
+<td>I/O</td>
+<td>—</td>
+<td>VSPI CLK</td>
+<td>PU/PD via GPIO matrix</td>
+<td>No</td>
+<td><span class="badge green">Available</span></td>
+<td>General‑purpose high‑speed capable.</td>
+</tr>
+<tr class="row-green" data-status="available">
+<td>31</td>
+<td><code>IO19</code></td>
+<td>GPIO19</td>
+<td>I/O</td>
+<td>—</td>
+<td>VSPI MISO/U0CTS</td>
+<td>PU/PD via GPIO matrix</td>
+<td>No</td>
+<td><span class="badge green">Available</span></td>
+<td>General‑purpose pin.</td>
+</tr>
+<tr class="row-gray" data-status="power-nc">
+<td>32</td>
+<td><code>NC</code></td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td><span class="badge gray">Power/NC</span></td>
+<td>No connect</td>
+</tr>
+<tr class="row-green" data-status="available">
+<td>33</td>
+<td><code>IO21</code></td>
+<td>GPIO21</td>
+<td>I/O</td>
+<td>—</td>
+<td>I2C SDA (typical), EMAC_TX_EN</td>
+<td>PU/PD via GPIO matrix</td>
+<td>No</td>
+<td><span class="badge green">Available</span></td>
+<td>Good for I²C SDA.</td>
+</tr>
+<tr class="row-green" data-status="available">
+<td>34</td>
+<td><code>RXD0</code></td>
+<td>GPIO3 / U0RXD</td>
+<td>I/O</td>
+<td>—</td>
+<td>UART0 RX (console)</td>
+<td>PU/PD via GPIO matrix</td>
+<td>No</td>
+<td><span class="badge green">Available</span></td>
+<td>Used for serial console; free after boot if no logs.</td>
+</tr>
+<tr class="row-green" data-status="available">
+<td>35</td>
+<td><code>TXD0</code></td>
+<td>GPIO1 / U0TXD</td>
+<td>I/O</td>
+<td>—</td>
+<td>UART0 TX (console)</td>
+<td>PU/PD via GPIO matrix</td>
+<td>No</td>
+<td><span class="badge green">Available</span></td>
+<td>Boot logs default here; can be repurposed.</td>
+</tr>
+<tr class="row-green" data-status="available">
+<td>36</td>
+<td><code>IO22</code></td>
+<td>GPIO22</td>
+<td>I/O</td>
+<td>—</td>
+<td>I2C SCL (typical), U0RTS</td>
+<td>PU/PD via GPIO matrix</td>
+<td>No</td>
+<td><span class="badge green">Available</span></td>
+<td>Good for I²C SCL.</td>
+</tr>
+<tr class="row-green" data-status="available">
+<td>37</td>
+<td><code>IO23</code></td>
+<td>GPIO23</td>
+<td>I/O</td>
+<td>—</td>
+<td>VSPI MOSI, HS1_STROBE</td>
+<td>PU/PD via GPIO matrix</td>
+<td>No</td>
+<td><span class="badge green">Available</span></td>
+<td>General‑purpose high‑speed capable.</td>
+</tr>
+<tr class="row-gray" data-status="power-nc">
+<td>38</td>
+<td><code>GND</code></td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+<td><span class="badge gray">Power/NC</span></td>
+<td>Ground</td>
+</tr>
+<tr class="row-gray" data-device="generic" data-status="power-nc"><td>—</td><td><code>3V3</code></td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="badge gray">Power/NC</span></td><td>3.3 V supply</td></tr><tr class="row-gray" data-device="generic" data-status="power-nc"><td>—</td><td><code>GND</code></td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span class="badge gray">Power/NC</span></td><td>Ground</td></tr><tr class="row-gray" data-device="generic" data-status="power-nc"><td>—</td><td><code>EN</code></td><td>EN (CHIP_EN)</td><td>Input</td><td>—</td><td>Chip enable</td><td>Internal pull‑up</td><td>No</td><td><span class="badge gray">Power/NC</span></td><td>Active‑high; keep high for normal operation.</td></tr><tr class="row-green" data-device="generic" data-status="input-only"><td>36</td><td><code>GPIO36</code></td><td>GPIO36 / ADC1_CH0 / RTC_GPIO0</td><td>Input only</td><td>ADC1_CH0, RTC</td><td>—</td><td>No internal PU/PD</td><td>No</td><td><span class="badge yellow">Input‑only</span> <span class="badge green">Available</span></td><td>Preferred for ADC1. Cannot drive output.</td></tr><tr class="row-green" data-device="generic" data-status="input-only"><td>39</td><td><code>GPIO39</code></td><td>GPIO39 / ADC1_CH3 / RTC_GPIO3</td><td>Input only</td><td>ADC1_CH3, RTC</td><td>—</td><td>No internal PU/PD</td><td>No</td><td><span class="badge yellow">Input‑only</span> <span class="badge green">Available</span></td><td>Preferred for ADC1. Cannot drive output.</td></tr><tr class="row-green" data-device="generic" data-status="input-only"><td>34</td><td><code>GPIO34</code></td><td>GPIO34 / ADC1_CH6 / RTC_GPIO4</td><td>Input only</td><td>ADC1_CH6, RTC</td><td>—</td><td>No internal PU/PD</td><td>No</td><td><span class="badge yellow">Input‑only</span> <span class="badge green">Available</span></td><td>Preferred for ADC1. Cannot drive output.</td></tr><tr class="row-green" data-device="generic" data-status="input-only"><td>35</td><td><code>GPIO35</code></td><td>GPIO35 / ADC1_CH7 / RTC_GPIO5</td><td>Input only</td><td>ADC1_CH7, RTC</td><td>—</td><td>No internal PU/PD</td><td>No</td><td><span class="badge yellow">Input‑only</span> <span class="badge green">Available</span></td><td>Preferred for ADC1. Cannot drive output.</td></tr><tr class="row-green" data-device="generic" data-status="available"><td>32</td><td><code>GPIO32</code></td><td>GPIO32 / ADC1_CH4 / RTC_GPIO9</td><td>I/O</td><td>ADC1_CH4, RTC</td><td>—</td><td>PU/PD via GPIO matrix</td><td>No</td><td><span class="badge green">Available</span></td><td>Preferred for ADC1.</td></tr><tr class="row-green" data-device="generic" data-status="available"><td>33</td><td><code>GPIO33</code></td><td>GPIO33 / ADC1_CH5 / RTC_GPIO8</td><td>I/O</td><td>ADC1_CH5, RTC</td><td>—</td><td>PU/PD via GPIO matrix</td><td>No</td><td><span class="badge green">Available</span></td><td>Preferred for ADC1.</td></tr><tr class="row-green" data-device="generic" data-status="available"><td>25</td><td><code>GPIO25</code></td><td>GPIO25</td><td>I/O</td><td>DAC1, ADC2_CH8</td><td>—</td><td>PU/PD via GPIO matrix</td><td>No</td><td><span class="badge green">Available</span></td><td>ADC2 shared with Wi‑Fi; avoid analog during Wi‑Fi.</td></tr><tr class="row-green" data-device="generic" data-status="available"><td>26</td><td><code>GPIO26</code></td><td>GPIO26</td><td>I/O</td><td>DAC2, ADC2_CH9</td><td>—</td><td>PU/PD via GPIO matrix</td><td>No</td><td><span class="badge green">Available</span></td><td>ADC2 shared with Wi‑Fi.</td></tr><tr class="row-green" data-device="generic" data-status="available"><td>27</td><td><code>GPIO27</code></td><td>GPIO27</td><td>I/O</td><td>ADC2_CH7, TOUCH7, RTC</td><td>—</td><td>PU/PD via GPIO matrix</td><td>No</td><td><span class="badge green">Available</span></td><td>ADC2 shared with Wi‑Fi.</td></tr><tr class="row-green" data-device="generic" data-status="available strapping"><td>12</td><td><code>GPIO12 / MTDI</code></td><td>GPIO12 / ADC2_CH5 / TOUCH5 / MTDI</td><td>I/O</td><td>ADC2_CH5, Touch5</td><td>HSPIQ/SD_DATA2</td><td>Internally pulled (strap)</td><td>Yes</td><td><span class="badge yellow">Strapping</span> <span class="badge green">Available</span></td><td>Strap: VDD_SDIO voltage; keep benign at boot.</td></tr><tr class="row-green" data-device="generic" data-status="available"><td>13</td><td><code>GPIO13 / MTCK</code></td><td>GPIO13 / ADC2_CH4 / TOUCH4 / MTCK</td><td>I/O</td><td>ADC2_CH4, Touch4</td><td>HSPID/SD_DATA3</td><td>PU/PD via GPIO matrix</td><td>No</td><td><span class="badge green">Available</span></td><td>JTAG MTCK default; free after boot.</td></tr><tr class="row-green" data-device="generic" data-status="available"><td>14</td><td><code>GPIO14 / MTMS</code></td><td>GPIO14 / ADC2_CH6 / TOUCH6 / MTMS</td><td>I/O</td><td>ADC2_CH6, Touch6</td><td>HSPI CLK/SD_CLK</td><td>PU/PD via GPIO matrix</td><td>No</td><td><span class="badge green">Available</span></td><td>JTAG MTMS default; free after boot.</td></tr><tr class="row-green" data-device="generic" data-status="available strapping"><td>15</td><td><code>GPIO15 / MTDO</code></td><td>GPIO15 / MTDO</td><td>I/O</td><td>—</td><td>HSPI CS0, U0TXD log ctrl</td><td>Internally pulled‑up (strap)</td><td>Yes</td><td><span class="badge yellow">Strapping</span> <span class="badge green">Available</span></td><td>Strap; avoid conflicting levels at boot.</td></tr><tr class="row-green" data-device="generic" data-status="available strapping"><td>0</td><td><code>GPIO0</code></td><td>GPIO0</td><td>I/O</td><td>ADC2_CH1</td><td>Boot mode select</td><td>Internally pulled‑up (strap)</td><td>Yes</td><td><span class="badge yellow">Strapping</span> <span class="badge green">Available</span></td><td>Low at reset → download boot; high → normal.</td></tr><tr class="row-green" data-device="generic" data-status="available strapping"><td>2</td><td><code>GPIO2</code></td><td>GPIO2</td><td>I/O</td><td>ADC2_CH2, TOUCH2</td><td>HSPI/SDIO data</td><td>Internally pulled‑down (strap)</td><td>Yes</td><td><span class="badge yellow">Strapping</span> <span class="badge green">Available</span></td><td>Keep high/floating for normal SPI boot.</td></tr><tr class="row-green" data-device="generic" data-status="available strapping"><td>4</td><td><code>GPIO4</code></td><td>GPIO4 / TOUCH0</td><td>I/O</td><td>TOUCH0, ADC2_CH0</td><td>HS2_DATA2, EMAC_TX_ER</td><td>PU/PD via GPIO matrix</td><td>Yes</td><td><span class="badge yellow">Strapping</span> <span class="badge green">Available</span></td><td>Often used as strap in chip docs; keep benign at boot.</td></tr><tr class="row-green" data-device="generic" data-status="available strapping"><td>5</td><td><code>GPIO5</code></td><td>GPIO5</td><td>I/O</td><td>—</td><td>VSPI CS0, EMAC_RX_CLK</td><td>Internally pulled‑up (strap)</td><td>Yes</td><td><span class="badge yellow">Strapping</span> <span class="badge green">Available</span></td><td>Strap; avoid pulling low at boot.</td></tr><tr class="row-green" data-device="generic" data-status="available"><td>16</td><td><code>GPIO16</code></td><td>GPIO16</td><td>I/O</td><td>—</td><td>UART2 RX/TX (usable), GP CLK</td><td>PU/PD via GPIO matrix</td><td>No</td><td><span class="badge green">Available</span></td><td>General‑purpose; often used for UART.</td></tr><tr class="row-green" data-device="generic" data-status="available"><td>17</td><td><code>GPIO17</code></td><td>GPIO17</td><td>I/O</td><td>—</td><td>UART2 RX/TX (usable), GP CLK</td><td>PU/PD via GPIO matrix</td><td>No</td><td><span class="badge green">Available</span></td><td>General‑purpose; often used for UART.</td></tr><tr class="row-green" data-device="generic" data-status="available"><td>18</td><td><code>GPIO18</code></td><td>GPIO18</td><td>I/O</td><td>—</td><td>VSPI CLK</td><td>PU/PD via GPIO matrix</td><td>No</td><td><span class="badge green">Available</span></td><td>High‑speed capable.</td></tr><tr class="row-green" data-device="generic" data-status="available"><td>19</td><td><code>GPIO19</code></td><td>GPIO19</td><td>I/O</td><td>—</td><td>VSPI MISO / U0CTS</td><td>PU/PD via GPIO matrix</td><td>No</td><td><span class="badge green">Available</span></td><td>General‑purpose.</td></tr><tr class="row-green" data-device="generic" data-status="available"><td>21</td><td><code>GPIO21</code></td><td>GPIO21</td><td>I/O</td><td>—</td><td>I2C SDA (typical)</td><td>PU/PD via GPIO matrix</td><td>No</td><td><span class="badge green">Available</span></td><td>Good for I²C SDA.</td></tr><tr class="row-green" data-device="generic" data-status="available"><td>22</td><td><code>GPIO22</code></td><td>GPIO22</td><td>I/O</td><td>—</td><td>I2C SCL (typical)</td><td>PU/PD via GPIO matrix</td><td>No</td><td><span class="badge green">Available</span></td><td>Good for I²C SCL.</td></tr><tr class="row-green" data-device="generic" data-status="available"><td>23</td><td><code>GPIO23</code></td><td>GPIO23</td><td>I/O</td><td>—</td><td>VSPI MOSI</td><td>PU/PD via GPIO matrix</td><td>No</td><td><span class="badge green">Available</span></td><td>High‑speed capable.</td></tr><tr class="row-green" data-device="generic" data-status="available"><td>1</td><td><code>GPIO1 / U0TXD</code></td><td>GPIO1 / U0TXD</td><td>I/O</td><td>—</td><td>UART0 TX (console)</td><td>PU/PD via GPIO matrix</td><td>No</td><td><span class="badge green">Available</span></td><td>Boot logs by default; can repurpose.</td></tr><tr class="row-green" data-device="generic" data-status="available"><td>3</td><td><code>GPIO3 / U0RXD</code></td><td>GPIO3 / U0RXD</td><td>I/O</td><td>—</td><td>UART0 RX (console)</td><td>PU/PD via GPIO matrix</td><td>No</td><td><span class="badge green">Available</span></td><td>Used for console; free after boot if unused.</td></tr><tr class="row-red" data-device="generic" data-status="flash-psram"><td>6</td><td><code>GPIO6</code></td><td>GPIO6</td><td>I/O</td><td>—</td><td>SPI Flash CLK (default)</td><td>—</td><td>No</td><td><span class="badge red">Flash/PSRAM</span></td><td>Usable only if not connected to external flash (rare).</td></tr><tr class="row-red" data-device="generic" data-status="flash-psram"><td>7</td><td><code>GPIO7</code></td><td>GPIO7</td><td>I/O</td><td>—</td><td>SPI Flash SD0 (default)</td><td>—</td><td>No</td><td><span class="badge red">Flash/PSRAM</span></td><td>Usable only if not connected to external flash (rare).</td></tr><tr class="row-red" data-device="generic" data-status="flash-psram"><td>8</td><td><code>GPIO8</code></td><td>GPIO8</td><td>I/O</td><td>—</td><td>SPI Flash SD1 (default)</td><td>—</td><td>No</td><td><span class="badge red">Flash/PSRAM</span></td><td>Usable only if not connected to external flash (rare).</td></tr><tr class="row-red" data-device="generic" data-status="flash-psram"><td>9</td><td><code>GPIO9</code></td><td>GPIO9</td><td>I/O</td><td>—</td><td>SPI Flash SD2 (default)</td><td>—</td><td>No</td><td><span class="badge red">Flash/PSRAM</span></td><td>Usable only if not connected to external flash (rare).</td></tr><tr class="row-red" data-device="generic" data-status="flash-psram"><td>10</td><td><code>GPIO10</code></td><td>GPIO10</td><td>I/O</td><td>—</td><td>SPI Flash SD3 (default)</td><td>—</td><td>No</td><td><span class="badge red">Flash/PSRAM</span></td><td>Usable only if not connected to external flash (rare).</td></tr><tr class="row-red" data-device="generic" data-status="flash-psram"><td>11</td><td><code>GPIO11</code></td><td>GPIO11</td><td>I/O</td><td>—</td><td>SPI Flash CMD (default)</td><td>—</td><td>No</td><td><span class="badge red">Flash/PSRAM</span></td><td>Usable only if not connected to external flash (rare).</td></tr></tbody>
+</table>
+<div class="footnotes"><p>Device selector: “ESP32‑WROVER (module)” shows only pins actually broken out on the WROVER module; “Generic ESP32 (chip)” shows the full ESP32 GPIO map, including pins typically wired to external flash (GPIO6–GPIO11).</p>
+<p><strong>Notes &amp; Caveats</strong></p>
+<ul>
+<li><strong>Input‑only pins</strong> (GPIO34–GPIO39) have <em>no</em> internal pull‑ups/downs; use external resistors if needed. They are excellent for ADC1 but cannot drive outputs.</li>
+<li><strong>ADC2 channels</strong> (GPIOs 0, 2, 4, 12–15, 25–27) are shared with Wi‑Fi. Avoid analog reads on ADC2 while Wi‑Fi is active.</li>
+<li><strong>Strapping pins</strong> (GPIO0, GPIO2, GPIO5, GPIO12/MTDI, GPIO15/MTDO) are sampled on reset to select boot mode and SDIO options; keep their levels benign at power‑up.</li>
+<li><strong>Flash/PSRAM pins</strong> (GPIO6–GPIO11) are internally connected; do not use them for external I/O on the WROVER module.</li>
+<li>UART0 (TXD0/RXD0) is used for boot logs by default; you can repurpose after boot if logs are disabled.</li>
+</ul>
+<p><strong>Sources</strong> (see official documentation):</p>
+<ul>
+<li><a href="https://cdn-shop.adafruit.com/product-files/3384/esp32-wrover_datasheet_en.pdf" rel="noreferrer" target="_blank">ESP32‑WROVER Datasheet V1.1/1.2 (Espressif)</a> — Pin definitions, strapping pins, flash-connected pins (GPIO6‑11).</li><li><a href="https://www.espressif.com/sites/default/files/documentation/esp32_datasheet_en.pdf" rel="noreferrer" target="_blank">ESP32 Series Datasheet (Espressif)</a> — General GPIO capabilities, input-only pins (GPIO34‑39), pull-ups/downs behavior.</li><li><a href="https://docs.espressif.com/projects/esp-hardware-design-guidelines/en/latest/esp32/index.html" rel="noreferrer" target="_blank">ESP32 Hardware Design Guidelines (Espressif)</a> — Strapping-pin guidance and boot/SDIO voltage notes.</li>
+</ul>
+</div>
+</body>
+</html>
